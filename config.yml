@@ -1,0 +1,4 @@
+﻿project_name: "Enterprise Document QA Assistant"
+version: 1.0
+data_path: "data/processed/"
+model: "sentence-transformers/all-MiniLM-L6-v2"
