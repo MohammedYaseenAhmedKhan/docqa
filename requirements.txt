@@ -1,0 +1,11 @@
+langchain
+openai
+sentence-transformers
+chromadb
+pdfplumber
+pymupdf
+tiktoken
+streamlit
+pandas
+pytest
+scikit-learn
