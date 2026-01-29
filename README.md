@@ -46,3 +46,35 @@ The goal is to build an end-to-end pipeline covering document ingestion, chunkin
 - Implement semantic retrieval
 - Add LLM-based answer generation with citations
 - Create Streamlit UI for interactive querying
+
+### Day 4 — Embeddings Generation
+- Implemented semantic embeddings using **sentence-transformers**
+- Used `all-MiniLM-L6-v2` model for efficient and high-quality vector representations
+- Generated normalized dense embeddings for each text chunk
+- Stored embeddings separately from metadata for scalability and traceability
+- Produced:
+  - `embeddings.npy` — numeric vector representations
+  - `embeddings_meta.jsonl` — chunk metadata for citation and retrieval
+
+Key focus:
+- Semantic similarity instead of keyword matching
+- Vector normalization to enable cosine similarity search
+- LLM-agnostic embedding pipeline design
+
+---
+
+### Day 5 — Vector Store & Semantic Retrieval
+- Built a **FAISS-based vector index** for fast approximate nearest neighbor search
+- Used `IndexFlatIP` with normalized embeddings for cosine similarity
+- Implemented a retriever that:
+  - Encodes user queries into vectors
+  - Performs top-k semantic search
+  - Returns relevant chunks with scores and metadata
+- Added edge-case handling for small datasets (FAISS empty-slot filtering)
+- Verified end-to-end semantic retrieval with real queries
+
+Key focus:
+- Efficient similarity search at scale
+- Clean separation of embeddings, index, and metadata
+- Production-style retrieval logic with robustness and explainability
+
