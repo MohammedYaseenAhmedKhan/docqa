@@ -108,4 +108,8 @@ Prompt grounded strictly in retrieved chunks
 
 Hallucination control via instructions
 
+<<<<<<< HEAD
 End-to-end RAG working locally
+=======
+End-to-end RAG working locally
+>>>>>>> 1ff75fa (Docs and deps: final README and updated requirements)
