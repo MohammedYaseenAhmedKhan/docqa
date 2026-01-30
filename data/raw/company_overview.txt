@@ -1,0 +1,19 @@
+Company Overview
+
+ABC Technologies is a mid-sized software services company operating in India.
+The company provides software development, data analytics, and IT consulting services.
+
+Departments:
+- Engineering
+- Product Management
+- Human Resources
+- Sales and Marketing
+- IT Support
+
+Working Hours:
+Office hours are from 9:30 AM to 6:30 PM, Monday to Friday.
+Employees are expected to be available during core working hours from 11:00 AM to 4:00 PM.
+
+Remote Work:
+Remote or hybrid work is allowed with prior approval from the reporting manager.
+Employees working remotely must follow IT security guidelines.

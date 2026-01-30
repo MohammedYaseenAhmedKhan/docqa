@@ -8,8 +8,15 @@ import re
 def clean_text(text: str) -> str:
     if not text:
         return ""
+
+    # Remove any remaining null bytes
+    text = text.replace("\x00", "")
+
+    # Normalize whitespace
     text = re.sub(r"\n{2,}", "\n", text)
+
     return text.strip()
+
 
 def ingest_pdf(path: Path):
     pages = []
@@ -25,16 +32,26 @@ def ingest_pdf(path: Path):
     return pages
 
 def ingest_markdown_or_txt(path: Path):
-    raw = path.read_text(encoding="utf-8", errors="ignore")
+    # Try UTF-8 first, fallback to UTF-16 (Windows default)
+    try:
+        raw = path.read_text(encoding="utf-8-sig")
+    except UnicodeError:
+        raw = path.read_text(encoding="utf-16")
+
+    # HARD normalization: remove null bytes
+    raw = raw.replace("\x00", "")
+
     if path.suffix.lower() in {".md", ".markdown"}:
         raw = markdown.markdown(raw)
         raw = re.sub(r"<[^>]+>", "", raw)
+
     return [{
         "doc_id": path.stem,
         "source": str(path),
         "page": 1,
         "text": clean_text(raw)
     }]
+
 
 def main(input_dir: str, out_file: str):
     input_dir = Path(input_dir)
