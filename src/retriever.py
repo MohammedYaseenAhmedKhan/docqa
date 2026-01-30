@@ -57,4 +57,21 @@ if __name__ == "__main__":
         print("Score:", r["score"])
         print("Doc:", r["doc_id"], "Page:", r["page"])
         print(r["text"])
+        # --------------------------------------------------
+# Public retriever interface (for UI / API use)
+# --------------------------------------------------
+
+_retriever_instance = None
+
+def retrieve(query: str, k: int = 5):
+    """
+    Retrieve top-k relevant document chunks for a query.
+    This function is used by Streamlit / APIs.
+    """
+    global _retriever_instance
+
+    if _retriever_instance is None:
+        _retriever_instance = Retriever()
+
+    return _retriever_instance.search(query, k)
 
