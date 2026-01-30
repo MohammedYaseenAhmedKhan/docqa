@@ -1,80 +1,111 @@
-# Enterprise Document QA Assistant (RAG)
+📘 Enterprise Document QA Assistant (RAG System)
 
-This project implements a **Retrieval-Augmented Generation (RAG)** system for querying enterprise documents with grounded answers and citations.
+A production-style Retrieval-Augmented Generation (RAG) system that ingests enterprise documents, performs semantic search using vector embeddings, and generates grounded answers with citations using Google Gemini.
 
-The goal is to build an end-to-end pipeline covering document ingestion, chunking, embeddings, retrieval, and answer generation.
+🎯 Objective
 
----
+Enable employees to ask natural-language questions over internal company documents (HR policies, benefits, IT security, onboarding) and receive accurate, source-backed answers.
 
-## Progress (Day 1 – Day 3)
+🧠 Core Concepts Used
 
-### Day 1 — Project Setup & Environment
-- Created project repository structure and virtual environment
-- Installed core dependencies for RAG (LangChain, sentence-transformers, PDF parsing, Streamlit)
-- Defined configuration and requirements for scalable development
-- Established clean GitHub repo structure with `.gitignore`
+Retrieval-Augmented Generation (RAG)
 
-### Day 2 — Document Ingestion Pipeline
-- Implemented document ingestion for **TXT / Markdown / PDF**
-- Extracted text page-wise with metadata (`doc_id`, `page`, `source`)
-- Handled real-world **Windows encoding issues** (UTF-16, UTF-8 BOM, null bytes)
-- Normalized and cleaned text for downstream processing
-- Stored processed output as `raw_pages.jsonl`
+Dense vector embeddings
 
-### Day 3 — Token-Aware Chunking
-- Designed sentence-aware chunking strategy
-- Implemented **token-based chunking with overlap** to preserve context
-- Generated chunk-level metadata (`chunk_id`, `doc_id`, `page`)
-- Produced `chunks.jsonl` ready for embeddings and retrieval
-- Ensured clean, debuggable, and interview-ready pipeline
+FAISS similarity search
 
----
+Context-aware chunking
 
-## Tech Stack
-- Python 3
-- LangChain
-- Sentence-Transformers
-- pdfplumber / PyMuPDF
-- Streamlit
-- Git & GitHub
+LLM grounding & hallucination control
 
----
+Enterprise document provenance
 
-## Next Steps
-- Generate embeddings for document chunks
-- Build vector index (FAISS / Chroma)
-- Implement semantic retrieval
-- Add LLM-based answer generation with citations
-- Create Streamlit UI for interactive querying
+🏗️ Architecture
+Documents (PDF / TXT / MD)
+        ↓
+Ingestion & Cleaning
+        ↓
+Chunking (overlap-aware)
+        ↓
+Embeddings (Sentence Transformers)
+        ↓
+FAISS Vector Index
+        ↓
+Retriever (Top-k semantic search)
+        ↓
+LLM (Gemini 2.5 Flash)
+        ↓
+Answer + Source Context
 
-### Day 4 — Embeddings Generation
-- Implemented semantic embeddings using **sentence-transformers**
-- Used `all-MiniLM-L6-v2` model for efficient and high-quality vector representations
-- Generated normalized dense embeddings for each text chunk
-- Stored embeddings separately from metadata for scalability and traceability
-- Produced:
-  - `embeddings.npy` — numeric vector representations
-  - `embeddings_meta.jsonl` — chunk metadata for citation and retrieval
+📂 Project Structure
+docqa/
+├── data/
+│   ├── raw/                # Source documents
+│   ├── raw_pages.jsonl     # Page-level extracted text
+│   └── chunks.jsonl        # Chunked passages
+├── src/
+│   ├── ingest.py           # Document ingestion
+│   ├── chunker.py          # Text chunking
+│   ├── embedder.py         # Embedding generation
+│   ├── indexer.py          # FAISS index build/load
+│   ├── retriever.py        # Semantic retrieval
+│   └── generator.py        # Gemini-based answer generation
+├── notebooks/
+├── tests/
+├── README.md
+└── requirements.txt
 
-Key focus:
-- Semantic similarity instead of keyword matching
-- Vector normalization to enable cosine similarity search
-- LLM-agnostic embedding pipeline design
+🗓️ Implementation Timeline
+✅ Day 1 — Environment & Repo Setup
 
----
+Virtual environment setup (Windows)
 
-### Day 5 — Vector Store & Semantic Retrieval
-- Built a **FAISS-based vector index** for fast approximate nearest neighbor search
-- Used `IndexFlatIP` with normalized embeddings for cosine similarity
-- Implemented a retriever that:
-  - Encodes user queries into vectors
-  - Performs top-k semantic search
-  - Returns relevant chunks with scores and metadata
-- Added edge-case handling for small datasets (FAISS empty-slot filtering)
-- Verified end-to-end semantic retrieval with real queries
+Project structure & Git initialization
 
-Key focus:
-- Efficient similarity search at scale
-- Clean separation of embeddings, index, and metadata
-- Production-style retrieval logic with robustness and explainability
+Dependency management
 
+✅ Day 2 — Document Ingestion
+
+Supported formats: .txt, .pdf (OCR-ready)
+
+Metadata preserved: doc_id, page, source
+
+Output: raw_pages.jsonl
+
+✅ Day 3 — Chunking & Text Cleaning
+
+Fixed encoding issues (BOM, null chars)
+
+Chunk size: ~300–500 tokens
+
+Overlap for context continuity
+
+Output: chunks.jsonl
+
+✅ Day 4 — Embeddings
+
+Model: all-MiniLM-L6-v2
+
+Normalized dense vectors
+
+Batched embedding generation
+
+Stored alongside chunk metadata
+
+✅ Day 5 — Vector Search (FAISS)
+
+Index type: IndexFlatIP (cosine similarity)
+
+Persisted FAISS index
+
+Top-k semantic retrieval with scores
+
+✅ Day 6 — Answer Generation (Gemini)
+
+LLM: Gemini 2.5 Flash
+
+Prompt grounded strictly in retrieved chunks
+
+Hallucination control via instructions
+
+End-to-end RAG working locally
