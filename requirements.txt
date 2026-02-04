@@ -10,3 +10,5 @@ pandas
 pytest
 scikit-learn
 markdown
+faiss-cpu
+google-genai
