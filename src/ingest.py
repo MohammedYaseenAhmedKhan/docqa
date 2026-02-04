@@ -1,79 +1,115 @@
+# src/ingest.py
+
 import argparse
 import json
 from pathlib import Path
+
 import pdfplumber
-import markdown
-import re
-
-def clean_text(text: str) -> str:
-    if not text:
-        return ""
-
-    # Remove any remaining null bytes
-    text = text.replace("\x00", "")
-
-    # Normalize whitespace
-    text = re.sub(r"\n{2,}", "\n", text)
-
-    return text.strip()
+from docx import Document
 
 
-def ingest_pdf(path: Path):
+# -------------------------------
+# TXT extraction
+# -------------------------------
+def extract_text_txt(path: str) -> str:
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+        return f.read()
+
+
+# -------------------------------
+# PDF extraction
+# -------------------------------
+def extract_text_pdf(path: str):
     pages = []
     with pdfplumber.open(path) as pdf:
         for i, page in enumerate(pdf.pages):
             text = page.extract_text() or ""
-            pages.append({
-                "doc_id": path.stem,
-                "source": str(path),
-                "page": i + 1,
-                "text": clean_text(text)
-            })
+            if text.strip():
+                pages.append({
+                    "page": i + 1,
+                    "text": text
+                })
     return pages
 
-def ingest_markdown_or_txt(path: Path):
-    # Try UTF-8 first, fallback to UTF-16 (Windows default)
-    try:
-        raw = path.read_text(encoding="utf-8-sig")
-    except UnicodeError:
-        raw = path.read_text(encoding="utf-16")
 
-    # HARD normalization: remove null bytes
-    raw = raw.replace("\x00", "")
+# -------------------------------
+# DOCX (Word) extraction
+# -------------------------------
+def extract_text_docx(path: str) -> str:
+    document = Document(path)
+    paragraphs = []
 
-    if path.suffix.lower() in {".md", ".markdown"}:
-        raw = markdown.markdown(raw)
-        raw = re.sub(r"<[^>]+>", "", raw)
+    for para in document.paragraphs:
+        if para.text.strip():
+            paragraphs.append(para.text.strip())
 
-    return [{
-        "doc_id": path.stem,
-        "source": str(path),
-        "page": 1,
-        "text": clean_text(raw)
-    }]
+    return "\n".join(paragraphs)
 
 
-def main(input_dir: str, out_file: str):
+# -------------------------------
+# Main ingestion logic
+# -------------------------------
+def ingest(input_dir: str, output_file: str):
     input_dir = Path(input_dir)
-    output = []
+    pages_out = []
 
-    for file in input_dir.rglob("*"):
-        if file.suffix.lower() == ".pdf":
-            output.extend(ingest_pdf(file))
-        elif file.suffix.lower() in {".txt", ".md", ".markdown"}:
-            output.extend(ingest_markdown_or_txt(file))
+    for path in input_dir.glob("**/*"):
+        if path.is_dir():
+            continue
 
-    Path(out_file).parent.mkdir(parents=True, exist_ok=True)
-    with open(out_file, "w", encoding="utf-8") as f:
-        for row in output:
+        suffix = path.suffix.lower()
+        doc_id = path.stem
+
+        # TXT
+        if suffix == ".txt":
+            text = extract_text_txt(str(path))
+            pages_out.append({
+                "doc_id": doc_id,
+                "source": str(path),
+                "page": 1,
+                "text": text
+            })
+
+        # PDF
+        elif suffix == ".pdf":
+            pages = extract_text_pdf(str(path))
+            for p in pages:
+                pages_out.append({
+                    "doc_id": doc_id,
+                    "source": str(path),
+                    "page": p["page"],
+                    "text": p["text"]
+                })
+
+        # DOCX
+        elif suffix == ".docx":
+            text = extract_text_docx(str(path))
+            pages_out.append({
+                "doc_id": doc_id,
+                "source": str(path),
+                "page": 1,
+                "text": text
+            })
+
+    # Ensure output directory exists
+    output_path = Path(output_file)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write JSONL
+    with open(output_path, "w", encoding="utf-8") as f:
+        for row in pages_out:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    print(f"Ingested {len(output)} pages")
+    print(f"Ingested {len(pages_out)} document pages")
 
+
+# -------------------------------
+# CLI entrypoint
+# -------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--out", default="data/raw_pages.jsonl")
+    parser.add_argument("--input", required=True, help="Input directory (data/raw)")
+    parser.add_argument("--out", default="data/raw_pages.jsonl", help="Output JSONL")
     args = parser.parse_args()
 
-    main(args.input, args.out)
+    ingest(args.input, args.out)
