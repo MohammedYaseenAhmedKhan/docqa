@@ -1,7 +1,7 @@
 # src/retriever.py
 import json
-import numpy as np
 import faiss
+import numpy as np
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 
@@ -20,58 +20,66 @@ class Retriever:
             for line in f:
                 self.metadata.append(json.loads(line))
 
-    def search(self, query: str, k: int = 3):
-        print(f"Searching for: {query}")
+        print(f"Loaded {len(self.metadata)} document chunks")
 
+    def search(self, query: str, k: int = 5):
         query_embedding = self.model.encode(
             [query],
             convert_to_numpy=True,
             normalize_embeddings=True
         )
 
-        scores, indices = self.index.search(query_embedding, k)
+        scores, indices = self.index.search(query_embedding, 10)
 
         results = []
+        query_lower = query.lower()
+
         for score, idx in zip(scores[0], indices[0]):
-            # Skip FAISS empty slots
-            if idx == -1 or score < -1e10:
+            if idx == -1:
                 continue
 
             chunk = self.metadata[idx]
+
+            # 🔹 Bias scoring using document name
+            doc_bonus = 0.0
+            if chunk["doc_id"].lower() in query_lower:
+                doc_bonus = 0.15
+
+            final_score = float(score) + doc_bonus
+
             results.append({
-                "score": float(score),
+                "score": final_score,
                 "doc_id": chunk["doc_id"],
                 "page": chunk["page"],
                 "text": chunk["text"]
             })
 
-        return results
+        # 🔹 Sort by adjusted score
+        results = sorted(results, key=lambda x: x["score"], reverse=True)
+
+        return results[:k]
+
+
+def interactive_mode():
+    retriever = Retriever()
+
+    print("\nSemantic Retriever Ready")
+    print("Ask questions about enterprise policies.")
+    print("Type 'exit' to quit.\n")
+
+    while True:
+        query = input("Ask a question: ").strip()
+        if query.lower() == "exit":
+            break
+
+        results = retriever.search(query)
+
+        for r in results:
+            print("\n---")
+            print(f"Score: {r['score']:.4f}")
+            print(f"Doc: {r['doc_id']} | Page: {r['page']}")
+            print(r["text"])
 
 
 if __name__ == "__main__":
-    retriever = Retriever()
-    results = retriever.search("What is the leave policy?", k=3)
-
-    for r in results:
-        print("\n---")
-        print("Score:", r["score"])
-        print("Doc:", r["doc_id"], "Page:", r["page"])
-        print(r["text"])
-        # --------------------------------------------------
-# Public retriever interface (for UI / API use)
-# --------------------------------------------------
-
-_retriever_instance = None
-
-def retrieve(query: str, k: int = 5):
-    """
-    Retrieve top-k relevant document chunks for a query.
-    This function is used by Streamlit / APIs.
-    """
-    global _retriever_instance
-
-    if _retriever_instance is None:
-        _retriever_instance = Retriever()
-
-    return _retriever_instance.search(query, k)
-
+    interactive_mode()
