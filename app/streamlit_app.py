@@ -1,65 +1,39 @@
 import streamlit as st
-from src.retriever import retrieve
+from src.retriever import Retriever
 from src.generator import generate_answer
 
-# -------------------------------
-# Page config
-# -------------------------------
 st.set_page_config(
-    page_title="Enterprise Document QA",
-    page_icon="📄",
+    page_title="Enterprise Document QA Assistant",
     layout="wide"
 )
 
 st.title("📄 Enterprise Document QA Assistant")
-st.write(
-    "Ask questions over internal company documents. "
-    "Answers are generated using retrieved source content."
-)
+st.caption("Ask questions across company policies using AI-powered search")
 
-# -------------------------------
-# Session state
-# -------------------------------
-if "history" not in st.session_state:
-    st.session_state.history = []
+# Initialize retriever once
+@st.cache_resource
+def load_retriever():
+    return Retriever()
 
-# -------------------------------
-# Input
-# -------------------------------
-query = st.text_input("Ask a question:", placeholder="e.g. What is the leave policy?")
+retriever = load_retriever()
 
-# -------------------------------
-# Button action
-# -------------------------------
-if st.button("Get Answer") and query.strip():
-    with st.spinner("Retrieving documents and generating answer..."):
-        chunks = retrieve(query, k=5)
-        answer = generate_answer(query, chunks)
+question = st.text_input("Ask a question about company policies")
 
-    st.session_state.history.append({
-        "question": query,
-        "answer": answer,
-        "sources": chunks
-    })
+if st.button("Get Answer") and question:
+    with st.spinner("Searching documents..."):
+        chunks = retriever.search(question, k=4)
 
-# -------------------------------
-# Display results
-# -------------------------------
-for item in reversed(st.session_state.history):
-    st.markdown("### ❓ Question")
-    st.write(item["question"])
+    if not chunks:
+        st.warning("No relevant information found.")
+    else:
+        with st.spinner("Generating answer..."):
+            answer = generate_answer(question, chunks)
 
-    st.markdown("### ✅ Answer")
-    st.write(item["answer"])
+        st.subheader("Answer")
+        st.write(answer)
 
-    with st.expander("📚 View Source Documents"):
-        for i, src in enumerate(item["sources"], start=1):
+        st.subheader("Sources")
+        for c in chunks:
             st.markdown(
-                f"""
-                **Source {i}**  
-                **Document:** `{src['doc_id']}`  
-                **Page:** {src['page']}  
-                **Score:** {src['score']:.3f}
-                """
+                f"- **{c['doc_id']} (Page {c['page']})**"
             )
-            st.write(src["text"])

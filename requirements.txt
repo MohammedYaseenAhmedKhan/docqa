@@ -1,14 +1,23 @@
-langchain
-openai
-sentence-transformers
-chromadb
+# Core language / utilities
+python-dotenv
+
+# Document ingestion
 pdfplumber
-pymupdf
-tiktoken
-streamlit
-pandas
-pytest
-scikit-learn
-markdown
+python-docx
+
+# Embeddings
+sentence-transformers
+numpy
+
+# Vector search
 faiss-cpu
+
+# LLM (Gemini)
 google-genai
+
+# UI
+streamlit
+
+# Optional (evaluation / future use)
+scikit-learn
+pandas

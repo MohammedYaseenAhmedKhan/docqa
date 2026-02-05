@@ -1,198 +1,126 @@
-📄 Enterprise Document Q&A Assistant (RAG-based)
+# Enterprise Document QA Assistant (RAG System)
 
-An end-to-end Enterprise Document Question Answering System built using Retrieval-Augmented Generation (RAG).
-This application allows users to query internal company documents using natural language and receive accurate, context-grounded answers through an interactive Streamlit UI.
+A Retrieval-Augmented Generation (RAG) system that ingests enterprise documents,
+performs semantic search using vector embeddings, and generates grounded answers
+with citations using an LLM.
 
-🚀 Key Features
+---
 
-📂 Ingest enterprise documents (TXT, PDF-ready)
+## 🚀 Features
 
-✂️ Semantic text chunking
+- Ingests **PDF, TXT, DOCX** enterprise documents
+- Intelligent **chunking** for long documents
+- **Sentence-Transformers embeddings**
+- **FAISS** vector similarity search
+- **Gemini LLM** for answer generation
+- **Streamlit UI** for interactive Q&A
+- Clear document **citations and provenance**
 
-🧠 Dense embeddings using SentenceTransformers
+---
 
-⚡ FAISS-based vector similarity search
+## 🧠 Architecture (High Level)
 
-🤖 Gemini LLM for answer generation
-
-🖥️ Streamlit-based interactive UI
-
-📌 Source-aware answers (document & page reference)
-
-🏗️ Architecture Overview (RAG Pipeline)
-Raw Documents
-      ↓
-Document Ingestion & Cleaning
-      ↓
-Text Chunking
-      ↓
-Embedding Generation
-      ↓
+Documents
+↓
+Ingestion (PDF/TXT/DOCX)
+↓
+Chunking
+↓
+Embeddings
+↓
 FAISS Vector Index
-      ↓
-Retriever (Top-K relevant chunks)
-      ↓
+↓
+Retriever
+↓
 LLM (Gemini)
-      ↓
-Final Answer (Streamlit UI)
+↓
+Streamlit UI
 
-🧰 Tech Stack
-Layer	Technology
-Language	Python
-Embeddings	sentence-transformers
-Vector Store	FAISS
-LLM	Google Gemini
-UI	Streamlit
-Parsing	pdfplumber
-Env Mgmt	python-dotenv
-📁 Project Structure
+
+---
+
+## 📁 Project Structure
+
 docqa/
 ├── app/
-│   └── streamlit_app.py        # Streamlit UI
-├── src/
-│   ├── ingest.py               # Document ingestion
-│   ├── chunker.py              # Text chunking
-│   ├── embedder.py             # Embedding generation
-│   ├── indexer.py              # FAISS indexing
-│   ├── retriever.py            # Semantic retrieval
-│   └── generator.py            # Gemini answer generation
+│ └── streamlit_app.py
 ├── data/
-│   ├── raw/                    # Input documents
-│   ├── processed/
-│   ├── faiss.index
-│   ├── embeddings_meta.jsonl
-│   └── raw_pages.jsonl
+│ ├── raw/ # Original documents
+│ ├── raw_pages.jsonl # Ingested pages
+│ ├── chunks.jsonl # Chunked text
+│ ├── embeddings.npy
+│ ├── embeddings_meta.jsonl
+│ └── faiss.index
+├── src/
+│ ├── ingest.py
+│ ├── chunker.py
+│ ├── embedder.py
+│ ├── retriever.py
+│ └── generator.py
 ├── requirements.txt
 ├── README.md
-└── .env
 
-⚙️ Setup Instructions (Windows)
-1️⃣ Clone Repository
-git clone https://github.com/MohammedYaseenAhmedKhan/docqa.git
-cd docqa
 
-2️⃣ Create & Activate Virtual Environment
+---
+
+## ⚙️ Setup Instructions (Windows)
+
+### 1️⃣ Create Virtual Environment
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-
-3️⃣ Install Dependencies
+2️⃣ Install Dependencies
 pip install -r requirements.txt
-
-🔑 Environment Configuration
-
-Create a .env file in the project root:
-
-GEMINI_API_KEY=your_gemini_api_key_here
-
-📥 Add Documents
-
-Place enterprise documents inside:
-
-data/raw/
-
-
-Example documents:
-
-employee_handbook.txt
-
-benefits_policy.txt
-
-it_security_policy.txt
-
-onboarding_guide.txt
-
-🔄 Run the Data Pipeline
-
-Run the following commands whenever documents are added or updated:
-
+▶️ Run the Full Pipeline
+Step 1: Ingest Documents
 python src/ingest.py --input data/raw --out data/raw_pages.jsonl
+Step 2: Chunk Documents
 python src/chunker.py
+Step 3: Generate Embeddings + FAISS Index
 python src/embedder.py
-python src/indexer.py
-
-🖥️ Run the Streamlit Application
+Step 4: Test Retrieval
+python src/retriever.py
+Step 5: Run Streamlit UI
 python -m streamlit run app/streamlit_app.py
-
-
-Open in browser:
+Open browser:
 
 http://localhost:8501
-
-💬 Example Queries
-
+📊 Example Question
 What is the leave policy?
 
-What benefits are offered to employees?
+✔️ Answer generated only from retrieved documents
+✔️ Includes citations
 
-What is the attendance policy?
+🧪 Key Concepts Used
+Retrieval-Augmented Generation (RAG)
 
-What is the company code of conduct?
+Dense Vector Search
 
-The system retrieves the most relevant document chunks and generates grounded answers using Gemini.
+Cosine Similarity
 
-🧠 Why Retrieval-Augmented Generation (RAG)?
+FAISS ANN Indexing
 
-RAG improves reliability by:
+Prompt Grounding
 
-Preventing hallucinations
+Hallucination Control
 
-Using only enterprise-approved documents
+Enterprise Compliance
 
-Providing explainable, source-backed answers
+🧩 Day-wise Progress
+Day 1–3: Setup, ingestion, chunking
 
-This makes the system suitable for internal company knowledge bases.
+Day 4–5: Embeddings + FAISS retrieval
 
-🛠️ Day-wise Development Breakdown
-Day 1
+Day 6: Gemini-based generation
 
-Project setup and repository initialization
+Day 7: Streamlit UI
 
-Virtual environment configuration
+Day 8+: Documentation, cleanup, evaluation
 
-Folder structure creation
+🔒 Notes
+.env is excluded from Git
 
-Dependency installation
+Generated artifacts are ignored
 
-Day 2
+Documents are dummy enterprise data
 
-Document ingestion pipeline
-
-Text extraction from raw files
-
-JSONL page-wise storage
-
-Day 3
-
-Text chunking logic
-
-Chunk size and overlap handling
-
-Validation of chunk outputs
-
-Day 4
-
-Embedding generation using SentenceTransformers
-
-Metadata creation
-
-Storage of embeddings and references
-
-Day 5
-
-FAISS index creation
-
-Semantic search implementation
-
-Retriever validation with sample queries
-
-Day 6
-
-Gemini LLM integration
-
-Answer generation using retrieved context
-
-Streamlit UI development
-
-End-to-end pipeline testing
-
-README finalization and GitHub cleanup

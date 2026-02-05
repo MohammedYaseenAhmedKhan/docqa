@@ -1,44 +1,53 @@
-# src/generator.py
 import os
 from typing import List, Dict
-import google.genai as genai
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Initialize Gemini client
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY")
-)
+from google import genai
 
 
-def generate_answer(question: str, chunks: List[Dict]) -> str:
-    """
-    Generate an answer using Gemini based strictly on retrieved document chunks.
-    """
+def get_gemini_client():
+    api_key = os.environ.get("GEMINI_API_KEY")
 
-    context = "\n\n".join(
-        [f"Source ({c['doc_id']} page {c['page']}): {c['text']}" for c in chunks]
-    )
+    if not api_key:
+        raise RuntimeError(
+            "GEMINI_API_KEY is not set. "
+            "Please set it before running the application."
+        )
 
-    prompt = f"""
-You are an enterprise document QA assistant.
-Answer the question ONLY using the context below.
-If the answer is not found in the context, say:
-"Answer not found in the provided documents."
+    return genai.Client(api_key=api_key)
 
-Context:
-{context}
+
+def build_prompt(question: str, chunks: List[Dict]) -> str:
+    context = ""
+    for i, chunk in enumerate(chunks, 1):
+        context += (
+            f"\nSource {i} ({chunk['doc_id']} - Page {chunk['page']}):\n"
+            f"{chunk['text']}\n"
+        )
+
+    return f"""
+You are an enterprise policy assistant.
+
+Answer the question STRICTLY using the sources below.
+If the answer is not present, say:
+"The information is not available in the provided documents."
 
 Question:
 {question}
 
+Sources:
+{context}
+
 Answer:
-"""
+""".strip()
+
+
+def generate_answer(question: str, chunks: List[Dict]) -> str:
+    client = get_gemini_client()
+    prompt = build_prompt(question, chunks)
 
     response = client.models.generate_content(
         model="models/gemini-2.5-flash",
         contents=prompt,
+        config={"temperature": 0.2},
     )
 
     return response.text.strip()

@@ -1,5 +1,3 @@
-# src/ingest.py
-
 import argparse
 import json
 from pathlib import Path
@@ -8,76 +6,63 @@ import pdfplumber
 from docx import Document
 
 
-def ingest_txt(path: Path):
-    pages = []
-    try:
-        text = path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        text = path.read_text(encoding="latin-1")
-
-    pages.append({
-        "doc_id": path.stem,
-        "source": str(path),
-        "page": 1,
-        "text": text.strip()
-    })
-    return pages
+def normalize_doc_id(path: Path) -> str:
+    return path.stem.replace("_", " ").replace("-", " ").title()
 
 
-def ingest_pdf(path: Path):
-    pages = []
+def read_txt(path):
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+
+def read_pdf(path):
+    text = []
     with pdfplumber.open(path) as pdf:
-        for i, page in enumerate(pdf.pages):
-            text = page.extract_text() or ""
-            pages.append({
-                "doc_id": path.stem,
-                "source": str(path),
-                "page": i + 1,
-                "text": text.strip()
-            })
-    return pages
+        for page in pdf.pages:
+            text.append(page.extract_text() or "")
+    return "\n".join(text)
 
 
-def ingest_docx(path: Path):
+def read_docx(path):
     doc = Document(path)
-    full_text = "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-
-    return [{
-        "doc_id": path.stem,
-        "source": str(path),
-        "page": 1,
-        "text": full_text
-    }]
+    return "\n".join(p.text for p in doc.paragraphs)
 
 
-def main(input_dir: str, output_file: str):
-    input_path = Path(input_dir)
-    output_path = Path(output_file)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+def ingest(input_dir: Path, output_file: Path):
+    records = []
 
-    all_pages = []
+    for file in input_dir.iterdir():
+        if file.suffix.lower() not in [".txt", ".pdf", ".docx"]:
+            continue
 
-    for file in input_path.glob("*"):
-        if file.suffix.lower() == ".txt":
-            all_pages.extend(ingest_txt(file))
+        doc_id = normalize_doc_id(file)
 
-        elif file.suffix.lower() == ".pdf":
-            all_pages.extend(ingest_pdf(file))
+        if file.suffix == ".txt":
+            text = read_txt(file)
+        elif file.suffix == ".pdf":
+            text = read_pdf(file)
+        else:
+            text = read_docx(file)
 
-        elif file.suffix.lower() == ".docx":
-            all_pages.extend(ingest_docx(file))
+        if not text.strip():
+            continue
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        for page in all_pages:
-            f.write(json.dumps(page, ensure_ascii=False) + "\n")
+        records.append({
+            "doc_id": doc_id,
+            "page": 1,
+            "text": text.strip()
+        })
 
-    print(f"Ingested {len(all_pages)} pages from {input_dir}")
+    with open(output_file, "w", encoding="utf-8") as f:
+        for r in records:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    print(f"Ingested {len(records)} documents")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Ingest enterprise documents")
-    parser.add_argument("--input", required=True, help="Input data directory")
-    parser.add_argument("--out", required=True, help="Output JSONL file")
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--out", required=True)
     args = parser.parse_args()
-    main(args.input, args.out)
+
+    ingest(Path(args.input), Path(args.out))
