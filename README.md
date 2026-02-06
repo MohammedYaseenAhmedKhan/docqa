@@ -1,32 +1,32 @@
 # Enterprise Document QA Assistant (RAG System)
 
-A Retrieval-Augmented Generation (RAG) system that ingests enterprise documents,
-performs semantic search using vector embeddings, and generates grounded answers
-with citations using an LLM.
+A production-style Retrieval-Augmented Generation (RAG) system for querying
+enterprise documents using semantic search and large language models.
+The system generates grounded answers strictly from retrieved documents,
+with clear source citations.
 
 ---
 
-## 🚀 Features
-
-- Ingests **PDF, TXT, DOCX** enterprise documents
-- Intelligent **chunking** for long documents
-- **Sentence-Transformers embeddings**
-- **FAISS** vector similarity search
-- **Gemini LLM** for answer generation
-- **Streamlit UI** for interactive Q&A
-- Clear document **citations and provenance**
+## 🚀 Key Features
+- Ingests enterprise documents (PDF, TXT, DOCX)
+- Semantic chunking for long-form content
+- Dense vector embeddings using Sentence Transformers
+- FAISS-based approximate nearest neighbor search
+- LLM-based answer generation (Gemini)
+- Streamlit UI for interactive querying
+- Source-aware responses with document provenance
 
 ---
 
-## 🧠 Architecture (High Level)
+## 🧠 System Architecture (High Level)
 
 Documents
 ↓
-Ingestion (PDF/TXT/DOCX)
+Ingestion (PDF / TXT / DOCX)
 ↓
-Chunking
+Semantic Chunking
 ↓
-Embeddings
+Vector Embeddings
 ↓
 FAISS Vector Index
 ↓
@@ -34,7 +34,7 @@ Retriever
 ↓
 LLM (Gemini)
 ↓
-Streamlit UI
+User Interface (Streamlit)
 
 
 ---
@@ -42,85 +42,62 @@ Streamlit UI
 ## 📁 Project Structure
 
 docqa/
-├── app/
-│ └── streamlit_app.py
-├── data/
-│ ├── raw/ # Original documents
-│ ├── raw_pages.jsonl # Ingested pages
-│ ├── chunks.jsonl # Chunked text
-│ ├── embeddings.npy
-│ ├── embeddings_meta.jsonl
-│ └── faiss.index
-├── src/
+├── app/ # Streamlit application
+├── src/ # Core pipeline modules
 │ ├── ingest.py
 │ ├── chunker.py
 │ ├── embedder.py
 │ ├── retriever.py
 │ └── generator.py
+├── data/ # Generated artifacts (ignored in Git)
 ├── requirements.txt
-├── README.md
+└── README.md
 
 
 ---
 
-## ⚙️ Setup Instructions (Windows)
+## ⚙️ Setup & Execution (Windows)
 
-### 1️⃣ Create Virtual Environment
+### Create virtual environment
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-2️⃣ Install Dependencies
+Install dependencies
 pip install -r requirements.txt
-▶️ Run the Full Pipeline
-Step 1: Ingest Documents
+Run the pipeline
 python src/ingest.py --input data/raw --out data/raw_pages.jsonl
-Step 2: Chunk Documents
 python src/chunker.py
-Step 3: Generate Embeddings + FAISS Index
 python src/embedder.py
-Step 4: Test Retrieval
 python src/retriever.py
-Step 5: Run Streamlit UI
 python -m streamlit run app/streamlit_app.py
-Open browser:
+Access the UI at:
 
 http://localhost:8501
-📊 Example Question
-What is the leave policy?
+📊 Example Query
+Question: What is the leave policy?
 
-✔️ Answer generated only from retrieved documents
-✔️ Includes citations
+Behavior:
 
-🧪 Key Concepts Used
-Retrieval-Augmented Generation (RAG)
+Answer generated only from retrieved document chunks
 
-Dense Vector Search
+Includes document-level citations
 
-Cosine Similarity
+Prevents hallucinations through retrieval grounding
 
-FAISS ANN Indexing
+🧪 Key Learnings
+Designing effective chunking strategies for enterprise documents
 
-Prompt Grounding
+Trade-offs between recall and precision in vector search
 
-Hallucination Control
+Preventing hallucinations using retrieval-grounded prompting
 
-Enterprise Compliance
+Structuring modular RAG pipelines for maintainability
 
-🧩 Day-wise Progress
-Day 1–3: Setup, ingestion, chunking
-
-Day 4–5: Embeddings + FAISS retrieval
-
-Day 6: Gemini-based generation
-
-Day 7: Streamlit UI
-
-Day 8+: Documentation, cleanup, evaluation
+Building end-to-end ML systems with clean backend separation
 
 🔒 Notes
-.env is excluded from Git
+Environment variables are excluded from version control
 
-Generated artifacts are ignored
+Generated artifacts and indexes are ignored
 
-Documents are dummy enterprise data
-
+Sample documents are non-sensitive, dummy enterprise data
