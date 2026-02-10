@@ -7,7 +7,7 @@ with clear source citations.
 
 ---
 
-## 🚀 Key Features
+## Key Features
 - Ingests enterprise documents (PDF, TXT, DOCX)
 - Semantic chunking for long-form content
 - Dense vector embeddings using Sentence Transformers
@@ -18,7 +18,7 @@ with clear source citations.
 
 ---
 
-## 🧠 System Architecture (High Level)
+##  System Architecture (High Level)
 
 Documents
 ↓
@@ -39,7 +39,7 @@ User Interface (Streamlit)
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 docqa/
 ├── app/ # Streamlit application
@@ -56,7 +56,7 @@ docqa/
 
 ---
 
-## ⚙️ Setup & Execution (Windows)
+##  Setup & Execution (Windows)
 
 ### Create virtual environment
 ```powershell
@@ -73,7 +73,7 @@ python -m streamlit run app/streamlit_app.py
 Access the UI at:
 
 http://localhost:8501
-📊 Example Query
+ Example Query
 Question: What is the leave policy?
 
 Behavior:
@@ -84,7 +84,7 @@ Includes document-level citations
 
 Prevents hallucinations through retrieval grounding
 
-🧪 Key Learnings
+Key Learnings
 Designing effective chunking strategies for enterprise documents
 
 Trade-offs between recall and precision in vector search
@@ -95,7 +95,7 @@ Structuring modular RAG pipelines for maintainability
 
 Building end-to-end ML systems with clean backend separation
 
-🔒 Notes
+ Notes
 Environment variables are excluded from version control
 
 Generated artifacts and indexes are ignored
